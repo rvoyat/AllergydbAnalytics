@@ -11,6 +11,7 @@ import it.allergydb.analytics.json.PercentualiPerCategoria;
 import it.allergydb.firebase4j.util.IAllergyConstants;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -58,7 +59,12 @@ public class ResultUtil {
         //Percentuali allergeni
         for(PercentualiPerCategoria perc: result.getPercentualiPerCategoria()){
             for(AllergenePercentuale allperc: perc.getAllergenePercentuale()){
-                allperc.setPercentuale(Double.valueOf(allperc.getPersone().intValue()/perc.getPersone().intValue()));
+            	try{
+            	double d = new BigDecimal(allperc.getPersone().intValue()).divide(new BigDecimal(perc.getPersone().intValue()),new MathContext(2)).doubleValue();
+                allperc.setPercentuale(d);
+            	} catch(Exception e){
+            		e.printStackTrace();
+            	}
             }
         } 
     }
@@ -158,6 +164,7 @@ public class ResultUtil {
         for(PercentualiPerCategoria corr:result.getPercentualiPerCategoria()){
             if(corr.getCategoria().equals(category)){
                 trovataCategoria = true;
+                corr.setPersone(corr.getPersone()+1);
                 boolean trovatoAllergene = false;
                 for(AllergenePercentuale allergenePercentuale:corr.getAllergenePercentuale()){
                     if(allergenePercentuale.getAllergene().equals(allergene)){
@@ -185,8 +192,7 @@ public class ResultUtil {
             newP.setAllergenePercentuale(new ArrayList<>());
             newP.getAllergenePercentuale().add(allergenePercentuale);
             result.getPercentualiPerCategoria().add(newP);
-        }
-        // TODO Auto-generated method stub
+        } 
         
     }
 

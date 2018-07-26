@@ -65,6 +65,8 @@ public class DataAnalytics {
             FeaturesInput input = new FeaturesInput(path, nameFileDataset, new Filter(), allergenLabel);
             PreProcessing preProcessing = new PreProcessing();
             Analytics analytics =  preProcessing.createDatasetFeatures(input);
+            PostProcessing postProcessing = new PostProcessing();
+            postProcessing.aggiornaAnalyticsToFirebase(analytics,null);
             LOGGER.info("End phase 1- Time elapsed: "+(System.currentTimeMillis()-start));
             
             //phase 2 MLib 
@@ -76,7 +78,6 @@ public class DataAnalytics {
             
             //phase 3 Post-processing
             LOGGER.info("Start phase 3- Post processing ...");
-            PostProcessing postProcessing = new PostProcessing();
             postProcessing.aggiornaAnalyticsToFirebase(analytics,resultSVM);
             LOGGER.info("End phase 3- Time elapsed: "+(System.currentTimeMillis()-start));
             
