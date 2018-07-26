@@ -1,0 +1,13 @@
+ 
+Start Hadoop con: 
+/opt/hadoop/sbin/start-all.sh
+ 
+ Lancio applicazione:
+hadoop jar ${PROJECT.DIR}/bigdata/BigDataAnalytics-0.0.1-SNAPSHOT.jar it/allergydb/analytics/DataAnalytics
+ 
+Risultati di hadoop in localhost:50070 nella sezione "Utilities/Browse the File system"
+ 
+Stop hadoop
+/opt/hadoop/sbin/stop-all.sh
+
+
