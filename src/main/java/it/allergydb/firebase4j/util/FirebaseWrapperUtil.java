@@ -16,7 +16,7 @@ public class FirebaseWrapperUtil {
 
       
     
-    public static Map<String,Object> getData(Filter filter) throws FirebaseException, UnsupportedEncodingException{
+    public Map<String,Object> getData(Filter filter) throws FirebaseException, UnsupportedEncodingException{
         Map<String, Object> body = null;
         try {
             String json = getJSON(filter);
@@ -30,13 +30,13 @@ public class FirebaseWrapperUtil {
     }
     
     
-    public static void put(String id,String json) throws FirebaseException, UnsupportedEncodingException{
+    public void put(String id,String json) throws FirebaseException, UnsupportedEncodingException{
         Firebase firebase = new Firebase("https://allergy-db.firebaseio.com/"); 
         firebase.put(id,json);
     }
 
     
-    public static String getJSON(Filter filter) throws UnsupportedEncodingException, FirebaseException{
+    public String getJSON(Filter filter) throws UnsupportedEncodingException, FirebaseException{
         
      // create the firebase
         // FirebaseResponse response = connect(filter);

@@ -3,7 +3,6 @@
  */
 package it.allergydb.svm;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 import org.apache.log4j.Logger;
@@ -30,7 +29,12 @@ import scala.Tuple2;
 public class LinearSupportVectorMachines implements Serializable{
 
 
-    protected static final Logger LOGGER = Logger.getRootLogger();
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = -1169652599382406379L;
+
+	protected static final Logger LOGGER = Logger.getRootLogger();
     
     private String path = "regressionAllergyDB";
     private String nameFileDataset ="dataset.txt";
@@ -52,13 +56,15 @@ public class LinearSupportVectorMachines implements Serializable{
     } 
     
  
+    /**
+     * 
+     * @return LSVMResult
+     */
     public LSVMResult run() { 
 
-        //Machine Learning phase: 
-        SparkSession spark = SparkSession
-                .builder() 
-                .appName("LinearSupportVectorMachines").master("local")
-          .getOrCreate(); 
+        //Creo la sessione di Spark: 
+        SparkSession spark = SparkSession.builder().appName("LinearSupportVectorMachines").master("local").getOrCreate(); 
+        
         //Carico il file da HDFS
         JavaRDD<LabeledPoint> data = MLUtils.loadLibSVMFile(spark.sparkContext(), path+"/"+nameFileDataset).toJavaRDD();
                  
@@ -67,22 +73,21 @@ public class LinearSupportVectorMachines implements Serializable{
         training.cache();
         JavaRDD<LabeledPoint> test = data.subtract(training);
 
-        // Run training algorithm to build the model.
+        // Lancio il training algorithm per buildare il modello.
         int numIterations = 100;
         SVMModel model = SVMWithSGD.train(training.rdd(), numIterations);
 
-        // Clear the default threshold.
+        // Pulisco lo threshold di default.
         model.clearThreshold();
 
-        // Compute raw scores on the test set.
-        JavaRDD<Tuple2<Object, Object>> scoreAndLabels = test.map(p ->
-          new Tuple2<>(model.predict(p.features()), p.label()));
+        // Calcolo le raw scores sul set di test.
+        JavaRDD<Tuple2<Object, Object>> scoreAndLabels = test.map(p -> new Tuple2<>(model.predict(p.features()), p.label()));
 
-        // Get evaluation metrics.areaUnderROC and Mean Squared Error
-        BinaryClassificationMetrics metrics =
-          new BinaryClassificationMetrics(JavaRDD.toRDD(scoreAndLabels));
+        // PRendo le evaluation metrics 
+        BinaryClassificationMetrics metrics = new BinaryClassificationMetrics(JavaRDD.toRDD(scoreAndLabels));
         double auROC = metrics.areaUnderROC();
-        double MSE = new JavaDoubleRDD(scoreAndLabels.map(
+        @SuppressWarnings("serial")
+		double MSE = new JavaDoubleRDD(scoreAndLabels.map(
                 new Function<Tuple2<Object, Object>, Object>() {
                   public Object call(Tuple2<Object, Object> pair) {
                     return Math.pow(Double.valueOf(pair._1().toString()) - Double.valueOf(pair._2().toString()), 2.0);
@@ -91,9 +96,11 @@ public class LinearSupportVectorMachines implements Serializable{
             ).rdd()).mean(); 
            
 
-        // Save model
+        // Salvo il  modello se previsto
         if(saveModel)
             model.save(spark.sparkContext(), modelsDir+modelName);
+        
+        //Carco il modello
         //SVMModel sameModel = SVMModel.load(spark.sparkContext(), "target/tmp/"+modelName);
         
         //Stop Spark context
@@ -101,8 +108,8 @@ public class LinearSupportVectorMachines implements Serializable{
         
         
         // Post-process phase : TODO salvataggio del modello e delle metriche su cloud per la visualizzazione nel sito web
-        System.out.println("Area under ROC = " + auROC);
-        System.out.println("Test Data Mean Squared Error = " + MSE);
+        LOGGER.info("Area under ROC = " + auROC);
+        LOGGER.info("Test Data Mean Squared Error = " + MSE);
             
         return new LSVMResult(auROC, MSE, "Model SVM Apache Spark format version:"+model.formatVersion());
 

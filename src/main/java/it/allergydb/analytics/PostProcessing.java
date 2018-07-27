@@ -14,6 +14,7 @@ import it.allergydb.firebase4j.util.IAllergyConstants;
 import it.allergydb.svm.LSVMResult;
 
 /**
+ * Classe per il post-processing del ciclo KDD con aggiornamento dei dati analitrci su db NoSQL Firebase
  * 
  * @author rvoyat
  *
@@ -39,7 +40,7 @@ public class PostProcessing {
     
     
     private void aggiornaDatiMachineLearnig(Analytics analytics, LSVMResult resultSVM) {
-        // TODO Auto-generated method stub
+        // TODO Dati da aggiornare
         
     }
 

@@ -3,30 +3,19 @@ package it.allergydb.analytics;
 import it.allergydb.analytics.json.Analytics;
 import it.allergydb.firebase4j.error.FirebaseException;
 import it.allergydb.firebase4j.error.JacksonUtilityException;
-import it.allergydb.firebase4j.util.Filter;
 import it.allergydb.firebase4j.util.FirebaseWrapperUtil;
 import it.allergydb.firebase4j.util.JacksonUtility;
 import it.allergydb.hdfs.HDFSUtil;
 import it.allergydb.svm.MapToSVMMaker;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
 import java.util.Map;
 
-import net.iharder.Base64.OutputStream;
-
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.apache.tools.ant.filters.StringInputStream;
 
 /**
+ * Classe per il pre-processing  della KDD 
  * 
  * @author rvoyat
  *
@@ -40,15 +29,21 @@ public class PreProcessing {
     private MapToSVMMaker svmMaker;
     private ResultUtil analyticsUtil;
     
+    /**
+     * Metodo che si occupa di scaricare i dati da Firebase, creare dati aggregati e crear il dataset per le fasi successive
+     * 
+     * @param input
+     * @return
+     * @throws IOException
+     */
     public Analytics createDatasetFeatures(FeaturesInput input) throws IOException {
          
 
         Analytics result = getAnalyticsUtil().generateVoidAnalytics(input);
         
-        //cARICO IL FILE SU HDFS
+        //APRO STREAM FILE SU HDFS
         FSDataOutputStream fsOutStream = getHdfsUtil().openStream(input.getPath(), input.getNomeFile());
-         
-        // Inizio ciclo lettura / trasformazione / scrittura 
+          
         boolean continueWhile = true; 
         int processati = 0;  
         try { 
@@ -76,12 +71,8 @@ public class PreProcessing {
                         break;
                     }
                     
-                } catch (Exception | FirebaseException e ) {
-                    e.printStackTrace();
-                    continueWhile = false;
-                    break;
-                } catch (JacksonUtilityException e) {
-                    e.printStackTrace();
+                } catch (Exception | FirebaseException |JacksonUtilityException e) {
+                	LOGGER.error("Error pre-processing",e);
                     continueWhile = false;
                     break;
                 } 
@@ -90,13 +81,12 @@ public class PreProcessing {
             }while(continueWhile && processati< input.getFilterFirebase().getSoglia());
             
         } catch (Exception   e ) { 
-            //TODO log exception
-            e.printStackTrace();
+        	LOGGER.error("Error pre-processing",e);
         } 
-        // Chiudo  lo stream su hdfs
+        //CHIUDO STREAM FILE SU HDFS
         getHdfsUtil().closeStream(fsOutStream);
         
-        //Rifinisco dati analytics
+        //Rifinisco analytics
         getAnalyticsUtil().rifinisciResult(result); 
         
         return result;
@@ -148,7 +138,7 @@ public class PreProcessing {
     /**
      * @param csvMaker the csvMaker to set
      */
-    public void setSvmMaker(MapToSVMMaker csvMaker) {
+    public void setSvmMaker(MapToSVMMaker svmMaker) {
         this.svmMaker = svmMaker;
     }
 
