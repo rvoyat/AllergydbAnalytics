@@ -45,6 +45,8 @@ public class DataAnalytics {
     
     public static String HADOOP_HOME_DIR = "/opt/hadoop";
     
+    public static String HADOOP_MODELS_DIR = "/tmp/Models/";
+    
     
     /**
      * Args[0] -> Allergene su cui calcolare il modello composto da: Categoria_allergene, ad esempio: Pollen_Graminacee, 
@@ -58,15 +60,15 @@ public class DataAnalytics {
         LOGGER.info("Start Data Analytics - Allergy db");
         
         long start = System.currentTimeMillis();
-        String allergenLabel = StringUtils.isNotBlank(args[0])?args[0]:ALLERGENE_DEFAULT;
+        String allergenLabel = args!= null && args.length>0 && StringUtils.isNotBlank( args[0]) ?args[0]:ALLERGENE_DEFAULT;
         
-        System.setProperty("HADOOP_USER_NAME", StringUtils.isNotBlank(args[1])?args[1]:HADOOP_USER);
-        System.setProperty("hadoop.home.dir", StringUtils.isNotBlank(args[2])?args[2]:HADOOP_HOME_DIR);
+        System.setProperty("HADOOP_USER_NAME", args!= null && args.length>1 &&StringUtils.isNotBlank(args[1])?args[1]:HADOOP_USER);
+        System.setProperty("hadoop.home.dir",args!= null && args.length>2 && StringUtils.isNotBlank(args[2])?args[2]:HADOOP_HOME_DIR);
         
-        String path = "regressionAllergyDB";
-        String nameFileDataset ="dataset.txt";
+        String path = "allergyDB";
+        String nameFileDataset ="dataset_"+allergenLabel+".txt";
         String modelName = "SVMWithSGDModel_"+allergenLabel;
-        String modelsDir ="target/tmp/"; 
+        String modelsDir = HADOOP_MODELS_DIR; 
         boolean saveModel = false;
         
         try {
